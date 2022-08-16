@@ -64,7 +64,6 @@ class Solver:
         raise NotImplementedError
 
 
-# TODO (Task 2): implement the solve method in the DfsSolver class.
 # Your solve method MUST be a recursive function (i.e. it must make
 # at least one recursive call to itself)
 # You may NOT change the interface to the solve method.
@@ -72,6 +71,24 @@ class DfsSolver(Solver):
     """"
     A solver for full-information puzzles that uses
     a depth first search strategy.
+
+    ==== Doctest Code ====
+    >>> from sudoku_puzzle import SudokuPuzzle
+    >>> s = SudokuPuzzle(4, [[" ", " ", "B", " "],
+    ...                      ["B", " ", "D", "C"],
+    ...                      [" ", " ", "A", " "],
+    ...                      [" ", " ", "C", " "]],
+    ...                  {"A", "B", "C", "D"})
+    >>> solver = DfsSolver()
+    >>> solution = solver.solve(s)
+    >>> actual = solution[-1]
+    >>> expected = SudokuPuzzle(4, [["C", "D", "B", "A"],
+    ...                             ["B", "A", "D", "C"],
+    ...                             ["D", "C", "A", "B"],
+    ...                             ["A", "B", "C", "D"]],
+    ...                         {"A", "B", "C", "D"})
+    >>> actual == expected
+    True
     """
 
     def solve(self, puzzle: Puzzle,
@@ -93,14 +110,44 @@ class DfsSolver(Solver):
         representations, whose puzzle states can't be any part of the path to
         the solution.
         """
+        result = [puzzle]
+        if puzzle.is_solved():
+            return result
+        if seen is None:
+            seen = {str(puzzle)}
+        else:
+            seen.add(str(puzzle))
+        for choice in puzzle.extensions():
+            if str(choice) not in seen and not choice.fail_fast():
+                result.extend(self.solve(choice, seen))
+                if result[-1].is_solved():
+                    return result
+        return []
 
 
-# TODO (Task 2): implement the solve method in the BfsSolver class.
 # Hint: You may find a Queue useful here.
 class BfsSolver(Solver):
     """"
     A solver for full-information puzzles that uses
     a breadth first search strategy.
+
+    ==== Doctest Code ====
+    >>> from sudoku_puzzle import SudokuPuzzle
+    >>> s = SudokuPuzzle(4, [[" ", " ", "B", " "],
+    ...                      ["B", " ", "D", "C"],
+    ...                      [" ", " ", "A", " "],
+    ...                      [" ", " ", "C", " "]],
+    ...                  {"A", "B", "C", "D"})
+    >>> solver = BfsSolver()
+    >>> solution = solver.solve(s)
+    >>> actual = solution[-1]
+    >>> expected = SudokuPuzzle(4, [["C", "D", "B", "A"],
+    ...                             ["B", "A", "D", "C"],
+    ...                             ["D", "C", "A", "B"],
+    ...                             ["A", "B", "C", "D"]],
+    ...                         {"A", "B", "C", "D"})
+    >>> actual == expected
+    True
     """
 
     def solve(self, puzzle: Puzzle,
@@ -122,9 +169,34 @@ class BfsSolver(Solver):
         representations, whose puzzle states can't be any part of the path to
         the solution.
         """
+        if puzzle.is_solved():
+            return [puzzle]
+        q = Queue()
+        if seen is None:
+            seen = set()
+        for next_step in puzzle.extensions():
+            q.enqueue([puzzle, next_step])
+        while not q.is_empty():
+            first = q.dequeue()
+
+            if first[-1].is_solved() and str(first[-1]) not in seen:
+                return first
+
+            if not first[-1].fail_fast() and str(first[-1]) not in seen:
+                seen.add(str(first[-1]))
+                for next_choice in first[-1].extensions():
+                    temp = first[:]
+                    temp.append(next_choice)
+                    q.enqueue(temp)
+
+        return []
 
 
 if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+
     import python_ta
 
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',

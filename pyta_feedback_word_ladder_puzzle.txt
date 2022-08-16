@@ -1,0 +1,12 @@
+word_ladder_puzzle.py
+=== Code errors/forbidden usage (fix: high priority) ===
+None!
+
+=== Style/convention errors (fix: before submission) ===
+None!
+
+
+[INFO] File: word_ladder_puzzle.py was checked using the configuration file: /data/markus/workspace/specs/env2pej3odw/venv/lib/python3.9/site-packages/python_ta/.pylintrc
+========== PyTA word_ladder_puzzle.py: PASS ==========
+
+

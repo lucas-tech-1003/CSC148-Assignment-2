@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 # You may remove this import if you don't use it in your code.
-from adts import Queue
+# from adts import Queue
 
 # constants for the supported operators
 OP_MULTIPLY = '*'
@@ -96,7 +96,6 @@ class ExprTree:
         """
         return self._root is None
 
-    # TODO (Task 4): implement eval
     def eval(self, lookup: Dict[str, int]) -> int:
         """
         Evaluate this expression tree and return the result.
@@ -118,8 +117,27 @@ class ExprTree:
         >>> exp_t.eval(look_up)
         31
         """
+        if self.is_empty():
+            return 0
+        elif isinstance(self._root, int):
+            return self._root
+        # if not lookup:
+        #     self.populate_lookup(lookup)
+        root = self._root
+        if root not in OPERATORS:
+            return lookup[root]
+        else:
+            if root == OP_ADD:
+                result = 0
+            else:
+                result = 1
+            for subtree in self._subtrees:
+                if root == OP_ADD:
+                    result += subtree.eval(lookup)
+                else:
+                    result *= subtree.eval(lookup)
+            return result
 
-    # TODO (Task 4): implement __str__
     def __str__(self) -> str:
         """
         Return a string representation of this expression tree
@@ -150,8 +168,17 @@ class ExprTree:
         >>> print(exp_t)
         (3 + (x * y) + x)
         """
+        if self.is_empty():
+            return '()'
+        root = self._root
+        if isinstance(self._root, int) or root not in OPERATORS:
+            return str(self._root)
+        else:
+            result = '('
+            for subtree in self._subtrees:
+                result += f'{str(subtree)} {self._root} '
+            return result[:-3] + ')'
 
-    # TODO (Task 4): implement __eq__
     def __eq__(self, other: ExprTree) -> bool:
         """
         Return whether this ExprTree is equivalent to <other>.
@@ -168,8 +195,26 @@ class ExprTree:
         >>> t2 == ExprTree('*', [])
         False
         """
+        if self.is_empty() and other.is_empty():
+            return True
+        elif self.is_empty() or other.is_empty():
+            return False
+        # if isinstance(root1, int) and isinstance(root2, int):
+        #     return root1 == root2
+        # elif root1 != root2:
+        elif self._root != other._root:
+            return False
+        elif self._root not in OPERATORS:
+            return True
+        else:
+            if len(self._subtrees) != len(other._subtrees):
+                return False
 
-    # TODO (Task 4): implement substitute
+            for i in range(len(self._subtrees)):
+                if self._subtrees[i] != other._subtrees[i]:
+                    return False
+            return True
+
     def substitute(self, from_to: Dict[Union[str, int],
                                        Union[str, int]]) -> None:
         """
@@ -184,15 +229,22 @@ class ExprTree:
         >>> exp_t.substitute({'a': 1})
         >>> print(exp_t)
         1
-        >>> exp_t = ExprTree('*',[ExprTree('a', []), \
+        >>> exp_t = ExprTree('+',[ExprTree('a', []), \
                                  ExprTree('*', [ExprTree('a', []),\
                                                 ExprTree(1, [])])])
-        >>> exp_t.substitute({'a': 2, '*': '+'})
+        >>> exp_t.substitute({'a': 'b', '*': '+'})
         >>> print(exp_t)
-        (2 + (2 + 1))
+        (b + (b + 1))
         """
+        if self.is_empty():
+            return
+        root = self._root
+        if root in from_to:
+            self._root = from_to[root]
+        if root in OPERATORS:
+            for subtree in self._subtrees:
+                subtree.substitute(from_to)
 
-    # TODO (Task 4): implement populate_lookup
     def populate_lookup(self, lookup: Dict[str, int]) -> None:
         """
         Add entries to <lookup> so it contains a key for all variables
@@ -206,7 +258,23 @@ class ExprTree:
         True
         >>> len(look_up) == 1
         True
+        >>> exp_t = ExprTree('+', [ExprTree(3, []), \
+                                   ExprTree('*', [ExprTree('x', []), \
+                                                  ExprTree('y', [])]), \
+                                   ExprTree('x', [])])
+        >>> look_up = {}
+        >>> exp_t.populate_lookup(look_up)
+        >>> len(look_up) == 2
+        True
         """
+        if self.is_empty() or isinstance(self._root, int):
+            return
+        root = self._root
+        if root not in OPERATORS:
+            lookup[root] = 0
+        else:
+            for subtree in self._subtrees:
+                subtree.populate_lookup(lookup)
 
     def append(self, child: ExprTree) -> None:
         """Append child to this ExprTree's list of subtrees.
@@ -264,7 +332,6 @@ class ExprTree:
             i += 1
 
 
-# TODO (Task 4): implement construct_from_list
 def construct_from_list(values: List[List[Union[str, int]]]) -> ExprTree:
     """
     Construct an expression tree from <values>.
@@ -292,7 +359,53 @@ def construct_from_list(values: List[List[Union[str, int]]]) -> ExprTree:
     >>> subtrees = [ExprTree(3, []), ExprTree('a', [])]
     >>> exp_t == ExprTree('+', subtrees)
     True
+    >>> example2 = [['+'], [3, '*', 'a', '+'], ['a', 'b', '*'], [1, 2, '+'],
+    ... ['a', 'b'], ['x', 'y']]
+    >>> exp_t2 = construct_from_list(example2)
+    >>> subtrees2 = [ExprTree(3, []), ExprTree('*', [ExprTree('a', []),
+    ... ExprTree('b', []),
+    ... ExprTree('*', [ExprTree('a', []), ExprTree('b', [])])]),
+    ... ExprTree('a', []),
+    ... ExprTree('+', [ExprTree(1, []), ExprTree(2, []),
+    ... ExprTree('+', [ExprTree('x', []), ExprTree('y', [])])])]
+    >>> exp_t2 == ExprTree('+', subtrees2)
+    True
     """
+    if not values:
+        return ExprTree(None, [])
+    elif len(values) == 1:
+        return ExprTree(values[0][0], [])
+    result = ExprTree(values[0][0], [])
+
+    q = []
+    for value in values[1:]:
+        q.append(value)
+
+    pairs = []
+    strings = []
+    expressions = q.pop(0)
+    for expr in expressions:
+        if expr not in OPERATORS:
+            strings.append(ExprTree(expr, []))
+        else:
+            pairs.append([[expr], q.pop(0)])
+
+    for pair in pairs:
+        if OP_ADD in pair[-1] or OP_MULTIPLY in pair[-1]:
+            pair.extend(q)
+            q.pop(0)
+
+    pair_count = 0
+    string_count = 0
+    for expr in expressions:
+        if expr in OPERATORS:
+            result.append(construct_from_list(pairs[pair_count]))
+            pair_count += 1
+        else:
+            result.append(strings[string_count])
+            string_count += 1
+
+    return result
 
 
 # Provided visualization code - see an example usage at the bottom
@@ -381,6 +494,22 @@ def _draw_graph(g: nx.Graph,
 
 
 if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+
+    example2 = [['+'], [3, '*', 'a', '+'], ['a', 'b', '*'], [1, 2], ['a', 'b']]
+    exp_t2 = construct_from_list(example2)
+    print(exp_t2)
+    subtrees2 = [ExprTree(3, []),
+                 ExprTree('*',
+                          [ExprTree('a', []), ExprTree('b', []),
+                           ExprTree('*', [ExprTree('a', []),
+                                          ExprTree('b', [])])]),
+                 ExprTree('a', []),
+                 ExprTree('+', [ExprTree(1, []), ExprTree(2, [])])]
+    print(exp_t2 == ExprTree('+', subtrees2))
+
     import python_ta
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',
                                 'allowed-io': [],
@@ -396,8 +525,8 @@ if __name__ == "__main__":
                                 'max-attributes': 15}
                         )
 
-    # # uncomment to generate example of expression tree from the handout
-    # # once you have completed the required parts of the code above
-    # ex = [['+'], [3, '*', 'a', '+'], ['a', 'b'], [5, 'c']]
-    # exprt = construct_from_list(ex)
-    # visualize(exprt)  # , display=True)  # toggle display or save to file
+    # uncomment to generate example of expression tree from the handout
+    # once you have completed the required parts of the code above
+    ex = [['+'], [3, '*', 'a', '+'], ['a', 'b', '*'], [1, 2], ['a', 'b']]
+    exprt = construct_from_list(ex)
+    visualize(exprt)  # , display=True)  # toggle display or save to file

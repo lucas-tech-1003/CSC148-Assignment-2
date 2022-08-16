@@ -68,7 +68,6 @@ class ExpressionTreePuzzle(Puzzle):
         self._tree = tree
         self.target = target
 
-    # TODO (Task 5) override is_solved
     def is_solved(self) -> bool:
         """
         Return True iff ExpressionTreePuzzle self is solved.
@@ -88,8 +87,11 @@ class ExpressionTreePuzzle(Puzzle):
         >>> puz.is_solved()
         True
         """
+        for variable in self.variables:
+            if self.variables[variable] == 0:
+                return False
+        return self.target == self._tree.eval(self.variables)
 
-    # TODO (Task 5) override __str__
     def __str__(self) -> str:
         """
         Return a string representation of this ExpressionTreePuzzle.
@@ -110,8 +112,8 @@ class ExpressionTreePuzzle(Puzzle):
         {'a': 0, 'b': 0}
         ((a * (b + 6 + 6)) + 5) = 61
         """
+        return f'{str(self.variables)}\n{str(self._tree)} = {str(self.target)}'
 
-    # TODO (Task 5) override extensions
     def extensions(self) -> List[ExpressionTreePuzzle]:
         """
         Return the list of legal extensions of this ExpressionTreePuzzle.
@@ -139,8 +141,18 @@ class ExpressionTreePuzzle(Puzzle):
         >>> len(exts_of_puz) == 18
         True
         """
+        result = []
+        for variable in self.variables:
+            if self.variables[variable] == 0:
+                for i in range(1, 10):
+                    new_dic = self.variables.copy()
+                    new_dic[variable] = i
+                    new_puz = ExpressionTreePuzzle(self._tree.copy(),
+                                                   self.target)
+                    new_puz.variables = new_dic
+                    result.append(new_puz)
+        return result
 
-    # TODO (TASK 5): override fail_fast
     # The specifics of how you implement this are up to you.
     # Hint 1: remember that a puzzle can only be extended by assigning a value
     #         to an unassigned variable.
@@ -152,9 +164,23 @@ class ExpressionTreePuzzle(Puzzle):
         have no solution, False otherwise.
 
         """
+        if not isinstance(self.target, int) or self.target < 0:
+            # can be specifically analyzed later
+            return True
+        elif self._tree.eval(self.variables) > self.target:
+            return True
+        for variable in self.variables:
+            if self.variables[variable] == 0:
+                # if any one of the variable is unassigned, it won't fail fast.
+                return False
+        return self._tree.eval(self.variables) != self.target
 
 
 if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()
+
     import python_ta
 
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',

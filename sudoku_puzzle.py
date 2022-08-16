@@ -30,6 +30,7 @@ Note: Some of the provided code makes use of list comprehensions
 from __future__ import annotations
 from typing import List, Set
 from puzzle import Puzzle
+from solver import BfsSolver
 
 EMPTY_CELL = ' '
 
@@ -250,7 +251,7 @@ class SudokuPuzzle(Puzzle):
 
         # list of SudokuPuzzles with each legal digit at position r, c
         return_lst = []
-        for symbol in allowed_symbols:
+        for symbol in sorted(allowed_symbols):  # the SORTED is added by myself!
             # NOTE: type(self)(...) means create a new SudokuPuzzle,
             # we do this here so that if we were to create a subclass of
             # SudokuPuzzle later, then this will work as intended
@@ -262,7 +263,6 @@ class SudokuPuzzle(Puzzle):
             return_lst.append(new_puzzle)
         return return_lst
 
-    # TODO (Task 1): override fail_fast
     # If there is an open position with no symbols available
     # (i.e. all symbols are already used in the same row, column, or subsquare),
     # then the sudoku puzzle is not solvable.
@@ -295,7 +295,31 @@ class SudokuPuzzle(Puzzle):
         [" ", " ", " ", " "]], {"A", "B", "C", "D"})
         >>> s.fail_fast()
         True
+        >>> s = SudokuPuzzle(4, \
+        [["D", "A", "B", " "], \
+        ["B", " ", "D", "C"], \
+        [" ", " ", "A", " "], \
+        [" ", " ", "C", " "]], {"A", "B", "C", "D"})
+        >>> s.fail_fast()
+        True
         """
+        for i in range(self._n):
+            for j in range(self._n):
+                if self._grid[i][j] == EMPTY_CELL and \
+                        self._fail_fast_helper(i, j):
+                    return True
+        return False
+
+    def _fail_fast_helper(self, i: int, j: int) -> bool:
+        """
+        Return True if the blank in [i][j] has no solution, or False otherwise.
+        """
+        row_i = self._row_set(i)
+        col_j = self._column_set(j)
+        choice = self._symbol_set - (row_i | col_j | self._subsquare_set(i, j))
+        if not choice:
+            return True
+        return False
 
     # some private helper methods
     # Note: these return sets of symbols you may find useful
@@ -328,7 +352,6 @@ class SudokuPuzzle(Puzzle):
                 subsquare_symbols.append(self._grid[ul_row + i][ul_col + j])
         return set(subsquare_symbols)
 
-    # TODO (Task 2): implement has_unique_solution
     # Implement this method according to its docstring
     # You may import any modules that you need when implementing this method.
     def has_unique_solution(self) -> bool:
@@ -341,11 +364,48 @@ class SudokuPuzzle(Puzzle):
 
         Hint: You should find the optional parameter, seen, for the Solver
         class' solve method very useful here.
+
+        >>> s_unique = SudokuPuzzle(9,
+        ...                 [['5', '3', ' ', ' ', '7', ' ', ' ', ' ', ' '],
+        ...                 ['6', ' ', ' ', '1', '9', '5', ' ', ' ', ' '],
+        ...                 [' ', '9', '8', ' ', ' ', ' ', ' ', '6', ' '],
+        ...                 ['8', ' ', ' ', ' ', '6', ' ', ' ', ' ', '3'],
+        ...                 ['4', ' ', ' ', '8', ' ', '3', ' ', ' ', '1'],
+        ...                 ['7', ' ', ' ', ' ', '2', ' ', ' ', ' ', '6'],
+        ...                 [' ', '6', ' ', ' ', ' ', ' ', '2', '8', ' '],
+        ...                 [' ', ' ', ' ', '4', '1', '9', ' ', ' ', '5'],
+        ...                 [' ', ' ', ' ', ' ', '8', ' ', ' ', '7', '9']],
+        ...                {'1', '2', '3', '4', '5', '6', '7', '8', '9'})
+        >>> s_unique.has_unique_solution()
+        True
         """
+        bfs = BfsSolver()
+        first_solution = bfs.solve(self)
+        if not first_solution:
+            return False
+        second_solution = bfs.solve(self, {str(first_solution[-1])})
+        return second_solution == []
 
 
 if __name__ == "__main__":
     # any code you want to use for testing your code above
+    import doctest
+
+    doctest.testmod()
+
+    s_not_unique = SudokuPuzzle(9,
+                                [[' ', '8', ' ', ' ', ' ', '9', '7', '4', '3'],
+                                 [' ', '5', ' ', ' ', ' ', '8', ' ', '1', ' '],
+                                 [' ', '1', ' ', ' ', ' ', ' ', ' ', ' ', ' '],
+                                 ['8', ' ', ' ', ' ', ' ', '5', ' ', ' ', ' '],
+                                 [' ', ' ', ' ', '8', ' ', '4', ' ', ' ', ' '],
+                                 [' ', ' ', ' ', '3', ' ', ' ', ' ', ' ', '6'],
+                                 [' ', ' ', ' ', ' ', ' ', ' ', ' ', '7', ' '],
+                                 [' ', '3', ' ', '5', ' ', ' ', ' ', '8', ' '],
+                                 ['9', '7', '2', '4', ' ', ' ', ' ', '5', ' ']],
+                                {'1', '2', '3', '4', '5', '6', '7', '8', '9'})
+    print(s_not_unique.has_unique_solution())
+
     import python_ta
 
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',

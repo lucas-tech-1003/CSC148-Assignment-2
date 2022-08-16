@@ -23,6 +23,7 @@ This module contains the word ladder puzzle class.
 from __future__ import annotations
 from typing import Optional, Set, List
 from puzzle import Puzzle
+from solver import BfsSolver
 
 
 # difficulty constants
@@ -89,7 +90,6 @@ class WordLadderPuzzle(Puzzle):
         # set of characters to use for 1-character changes
         self._chars = LETTERS
 
-    # TODO (Task 3): override __eq__
     def __eq__(self, other: WordLadderPuzzle) -> bool:
         """
         Return whether WordLadderPuzzle self is equivalent to other.
@@ -105,8 +105,10 @@ class WordLadderPuzzle(Puzzle):
         >>> wl1 == wl3
         True
         """
+        return (self.from_word == other.from_word) and \
+               (self.to_word == other.to_word) and \
+               (self.word_set == other.word_set)
 
-    # TODO (Task 3): override __str__
     def __str__(self) -> str:
         """
         Return a human-friendly string representing this WordLadderPuzzle's
@@ -121,8 +123,8 @@ class WordLadderPuzzle(Puzzle):
         >>> print(wl2)
         me -> my
         """
+        return f'{self.from_word} -> {self.to_word}'
 
-    # TODO (Task 3): override is_solved
     # Note: A WordLadderPuzzle is solved when from_word is the same as its
     # to_word
     def is_solved(self) -> bool:
@@ -136,8 +138,8 @@ class WordLadderPuzzle(Puzzle):
         >>> wl2.is_solved()
         False
         """
+        return self.from_word == self.to_word
 
-    # TODO (Task 3): override extensions
     # legal extensions are valid WordLadderPuzzles that have a from_word that
     # differs from this WordLadderPuzzle's from_word by exactly one character
     def extensions(self) -> List[WordLadderPuzzle]:
@@ -158,8 +160,16 @@ class WordLadderPuzzle(Puzzle):
         >>> len(wl1_extensions) == 2
         True
         """
+        result = []
+        from_word = self.from_word
+        for i in range(len(from_word)):
+            for char in LETTERS:
+                combination = from_word[:i] + char + from_word[i + 1:]
+                if combination in self.word_set and combination != from_word:
+                    result.append(WordLadderPuzzle(combination, self.to_word,
+                                                   self.word_set))
+        return result
 
-    # TODO (Task 3): implement get_difficulty
     # Note: implementing this requires you to have completed Task 2
     # Hint: Think about which of BfsSolver and DfsSolver is the right
     #       solver for the task at hand. (You may add any required
@@ -183,11 +193,41 @@ class WordLadderPuzzle(Puzzle):
         HARD - a solution exists and it takes at least 5 moves to reach.
 
         IMPOSSIBLE - a solution does not exist
+
+        >>> wl1 = WordLadderPuzzle("come", "done", {"come", "cone", "done"})
+        >>> wl1.get_difficulty() == EASY
+        True
+        >>> wl2 = WordLadderPuzzle("come", "donx",
+        ...                 {"come", "cone", "done", "donx"})
+        >>> wl2.get_difficulty() == MEDIUM
+        True
+        >>> wl3 = WordLadderPuzzle("coal", "goat")
+        >>> wl2.get_difficulty() == MEDIUM
+        True
         """
+        if self.is_solved():
+            return TRIVIAL
+        dfs = BfsSolver()
+        solution = dfs.solve(self)
+        if not solution:
+            return IMPOSSIBLE
+        length = len(solution)
+        if length <= 2:
+            return TRIVIAL
+        elif length == 3:
+            return EASY
+        elif length <= 5:
+            return MEDIUM
+        else:
+            return HARD
 
 
 if __name__ == '__main__':
     # any code you want to write to test WordLadderPuzzle.
+    import doctest
+
+    doctest.testmod()
+
     import python_ta
 
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',

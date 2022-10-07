@@ -22,8 +22,10 @@ WordLadderPuzzle once you have completed the necessary parts of the assignment.
 """
 
 from __future__ import annotations
+
 from random import shuffle
 from typing import Optional, Set
+
 from solver import BfsSolver
 from word_ladder_puzzle import WordLadderPuzzle, load_words
 

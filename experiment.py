@@ -34,6 +34,7 @@ Things you might explore:
 - implementing your own custom solver to try to get better performance
 """
 from timeit import timeit
+
 from solver import BfsSolver, DfsSolver
 from sudoku_puzzle import SudokuPuzzle
 from word_ladder_puzzle import WordLadderPuzzle

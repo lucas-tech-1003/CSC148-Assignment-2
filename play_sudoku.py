@@ -25,19 +25,21 @@ in the console.
 Feel free to modify this module.
 """
 from __future__ import annotations
-from typing import List, Tuple
 
 from random import randint, shuffle
+from typing import List, Tuple
+
 # imports for the GUI
 import pygame
 import pygame_gui
 from pygame.event import Event
 from pygame_gui.core.interfaces import IUIManagerInterface
 from pygame_gui.elements import UIButton, UILabel
+
 # imports from our code
 from puzzle import Puzzle
 from solver import DfsSolver
-from sudoku_puzzle import SudokuPuzzle, EMPTY_CELL
+from sudoku_puzzle import EMPTY_CELL, SudokuPuzzle
 
 # You can configure the settings here
 N = 4  # puzzle size - suggested is either 4 or 9 (untested on 16)

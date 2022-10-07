@@ -16,7 +16,7 @@ This module contains list-based implementations of the Stack and Queue
 ADTs. You are NOT required to use either of these in this assignment,
 but we include them for those who wish to do so.
 """
-from typing import List, Optional, Any
+from typing import Any, List, Optional
 
 
 ###############################################################################

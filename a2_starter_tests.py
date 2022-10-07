@@ -35,11 +35,11 @@ add further test cases in this file to improve your confidence in your code.
 Tip: if you put your mouse inside a pytest function and right click, the "run"
 menu will give you the option of running just that test function.
 """
-from sudoku_puzzle import SudokuPuzzle
-from word_ladder_puzzle import WordLadderPuzzle, EASY, TRIVIAL
 from expression_tree import ExprTree, construct_from_list
 from expression_tree_puzzle import ExpressionTreePuzzle
 from solver import BfsSolver, DfsSolver
+from sudoku_puzzle import SudokuPuzzle
+from word_ladder_puzzle import EASY, TRIVIAL, WordLadderPuzzle
 
 
 # Below is an incomplete set of tests: these tests are mostly the provided
@@ -318,4 +318,5 @@ def test_expression_tree_puzzle_fail_fast_false() -> None:
 
 if __name__ == '__main__':
     import pytest
+
     pytest.main(['a2_starter_tests.py'])

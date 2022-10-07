@@ -22,15 +22,17 @@ ExpressionTreePuzzle once you have completed the necessary parts
 of the assignment.
 """
 from __future__ import annotations
+
+from random import choice, randint, shuffle
 from typing import Dict, List, Tuple
 
-from random import randint, choice, shuffle
 # imports for the GUI
 import pygame
 import pygame_gui
 from pygame.event import Event
 from pygame_gui.core.interfaces import IUIManagerInterface
-from pygame_gui.elements import UIButton, UILabel, UIDropDownMenu
+from pygame_gui.elements import UIButton, UIDropDownMenu, UILabel
+
 # imports from our code
 from expression_tree import ExprTree, OPERATORS, visualize
 from expression_tree_puzzle import ExpressionTreePuzzle
@@ -168,7 +170,7 @@ class ExpressionTreePuzzleGUI:
         for i in range(len(self._variable_name)):
             self._puzzle.variables[
                 self._variable_name[i].text] = int(
-                    self._variable_map[i].selected_option)
+                self._variable_map[i].selected_option)
             if self._puzzle.is_solved():
                 self._result_label.set_text("SOLVED!")
             else:

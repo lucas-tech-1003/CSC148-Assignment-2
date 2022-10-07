@@ -22,7 +22,7 @@ This module contains the expression tree class.
 
 from __future__ import annotations
 
-from typing import List, Dict, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 # for the provided tree visualization code
 import matplotlib.pyplot as plt
@@ -511,6 +511,7 @@ if __name__ == "__main__":
     print(exp_t2 == ExprTree('+', subtrees2))
 
     import python_ta
+
     python_ta.check_all(config={'pyta-reporter': 'ColorReporter',
                                 'allowed-io': [],
                                 'allowed-import-modules': ['doctest',

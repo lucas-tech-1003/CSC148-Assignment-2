@@ -27,7 +27,6 @@ from typing import List, Optional, Set
 
 # You may remove this import if you don't use it in your code.
 from adts import Queue
-
 from puzzle import Puzzle
 
 

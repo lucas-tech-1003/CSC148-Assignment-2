@@ -22,7 +22,7 @@ This module contains the ExpressionTreePuzzle class.
 
 from __future__ import annotations
 
-from typing import List, Dict
+from typing import Dict, List
 
 from expression_tree import ExprTree
 from puzzle import Puzzle
